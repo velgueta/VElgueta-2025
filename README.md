@@ -15,11 +15,13 @@ This project presents earthquake data recorded with Distributed Acoustic Sensing
 - 📁 Publicly available data and waveform plots  
 
 ## Repository Structure
-csv/ # csv require to do remake some figures
-notebooks/ # Processed data or summaries to produce the figures presented on the paper
-template-matching/ # Python scripts to run template matching and create the template, all at once
-banner.png # Repository banner image
-README.md # This file
+
+```text
+csv/                - CSV files required to remake key figures  
+notebooks/          - Jupyter Notebooks to summarize and generate paper figures  
+template-matching/  - Python scripts for template creation and matching  
+banner.png          - Repository banner image  
+README.md           - This file  
 
 ## Citation
 
