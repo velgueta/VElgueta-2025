@@ -17,8 +17,9 @@ This project presents earthquake data recorded with Distributed Acoustic Sensing
 ## Repository Structure
 
 ```text
-csv/                - CSV files required to remake key figures  
+text-files/         - CSV and txt files required to remake key figures  
 notebooks/          - Jupyter Notebooks to summarize and generate paper figures  
+cc/                 - Python scripts for crosscorrelation and autocorrelation
 template-matching/  - Python scripts for template creation and matching  
 banner.png          - Repository banner image  
 README.md           - This file  
