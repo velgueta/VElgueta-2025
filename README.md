@@ -17,6 +17,7 @@ This project presents earthquake data recorded with Distributed Acoustic Sensing
 ## Repository Structure
 
 ```text
+bridge/             - Python script to compute resonances on the bridge 
 text-files/         - CSV and txt files required to remake key figures  
 notebooks/          - Jupyter Notebooks to summarize and generate paper figures  
 cc/                 - Python scripts for crosscorrelation and autocorrelation
