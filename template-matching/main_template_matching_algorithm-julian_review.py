@@ -2,6 +2,23 @@
 
 Preserved without algorithm changes. See README.md in this folder before running.
 Requires server data and verified helper-module versions; not validated end to end.
+
+Workflow and rationale:
+1. Configure the raw-data root and output folders. Input minute files are indexed
+   by year/Julian day; no waveform download is done by this driver.
+2. Query the August ComCat source events and locate their waveform minutes.
+   Missing minutes are reported, so catalog size is not the template count.
+3. Extract templates through template_maker2, then find available continuous
+   files over the three-month interval. Template creation details are delegated
+   to the helper and must be checked against the production helper version.
+4. Apply the defined bandpass and distribute templates across correlation workers.
+   Sampling rate and channel bounds must match the actual input HDF5 data.
+5. Save timestamps and diagnostic plots. This driver does not perform the final
+   manual validation or the 1000-km ComCat screening used in the manuscript.
+
+Review before execution: paths are server-specific, output directories are
+created at module level, and multiprocessing has no __main__ guard. Do not import
+this script for inspection or run it unchanged on spawn-based platforms.
 """
 
 import os, re, glob

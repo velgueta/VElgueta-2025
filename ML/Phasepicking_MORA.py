@@ -1,3 +1,20 @@
+"""Example DAS waveform-to-pick workflow; not the final event catalog.
+
+Step 1: edit the helper-module paths, waveform directory, output directory and
+date/hour loop below. This preserved example processes two December 2023 hours.
+Step 2: load six pretrained EQTransformer models; no local training is performed.
+Step 3: filter and normalize each minute, then downsample to the picker rate.
+Step 4: apply ELEP to every fourth channel and export candidate P/S arrival times.
+Step 5: run das_event_catalog.py separately to evaluate S-pick coherence/moveout.
+
+Requires the external das_util, detect_util and denodas_model modules as well as
+ELEP, SeisBench and the imported scientific packages. Model downloads may require
+network access. Create the output directory first. No denoiser is executed: its
+initialization is commented out. Server paths are examples, not portable defaults.
+The exported sampling-rate metadata remains 200 although picker input is 100 Hz;
+verify this convention before interpreting sample-based fields downstream.
+"""
+
 import sys
 sys.path.append('/home/velgueta/notebooks/RainierDas/Qibin-repo/Shi_etal_2023_denoiseDAS/src/denoiser/')
 sys.path.append('/home/velgueta/notebooks/RainierDas/Qibin-repo/Shi_etal_2023_denoiseDAS/src/ensemble_picker/')
@@ -105,6 +122,8 @@ for ihour in tqdm(range(0,2)):
     ### merge two arrays and filter
     
     rawdata = np.nan_to_num(rainier_data)
+    # Filter before decimation; the 49 Hz upper corner is below the new Nyquist.
+    # Scale each minute by a single standard deviation over channels and time.
     filt = filtfilt(b, a, rawdata, axis=2)
     rawdata = filt / np.std(filt, axis=(1,2), keepdims=True)
     rawdata = rawdata[:,:,::2]
@@ -126,6 +145,8 @@ for ihour in tqdm(range(0,2)):
                     'weight_flag':'max'}
     
     sel_ch = np.arange(int(ch_itv/2), rawdata.shape[1], ch_itv)
+    # Sampling starts at channel 2 with stride 4. Each selected trace is passed
+    # to the external ELEP helper; spatial event screening happens downstream.
     nsta = len(sel_ch)
     mul_picks = np.zeros([len_cat, nsta, 2, 2], dtype = np.float32)
     for imin in np.arange(len_cat):
@@ -189,6 +210,4 @@ for ihour in tqdm(range(0,2)):
             'trace_s_arrival': s_den,
             'trace_p_arrival': p_den})], ignore_index=True)
         
-    df_deno.to_csv(filepath + 'MORADAS_' + t0.strftime('%Y%m%d_%H') + '.csv') #create the csv for each hour, 
-        
-    
+    df_deno.to_csv(filepath + 'MORADAS_' + t0.strftime('%Y%m%d_%H') + '.csv') #create the csv for each hour

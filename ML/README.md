@@ -38,6 +38,10 @@ use `--pattern` for a different filename convention. Do not mix unrelated CSVs.
 - Physical moveout: trial sources within 25 km of Mount Rainier, initial grid
   spacing 2.5 km, depths 0-20 km in 2-km steps and S velocities 2.5, 3.0, 3.5,
   and 4.0 km/s, followed by local refinement. A common time offset is fitted.
+  Refinement uses 0.5-km horizontal, 1-km depth and 0.25-km/s velocity steps around
+  the coarse optimum; its bounds are 0-25 km depth and 2-4.5 km/s, so the initial
+  ranges are not hard final bounds. Travel times assume straight rays and a
+  constant velocity, not the station PyOcto velocity model.
 - At least one locally coherent block must also pass the physical test: scaled
   residual MAD at most 0.10 s, 95th-percentile absolute residual at most 0.25 s,
   and at least 85% of residuals within 0.20 s. One noisy segment does not by itself

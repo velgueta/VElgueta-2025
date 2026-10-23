@@ -184,6 +184,11 @@ class EmbeddedGeometry(object):
 
 
 def read_s_picks(path):
+    """Read station_code=dasN and trace_s_arrival; skip missing/invalid picks.
+
+    Picks are already computed upstream. No waveform filtering, model inference,
+    probability thresholding or catalog matching is performed here.
+    """
     picks = []
     data_rows = 0
     with path.open("r", newline="") as handle:
@@ -264,6 +269,11 @@ def better_block(first, second):
 
 
 def merge_overlapping_blocks(candidates):
+    """Keep the strongest overlapping candidate to limit duplicate counting.
+
+    Temporal proximity alone is insufficient here: channel ranges must also
+    overlap or be adjacent. This differs from the later event grouping step.
+    """
     merged = []
     for candidate in sorted(candidates, key=lambda row: row["arrival_start"]):
         matching = [index for index, row in enumerate(merged) if blocks_overlap(row, candidate)]
@@ -279,6 +289,11 @@ def merge_overlapping_blocks(candidates):
 
 
 def detect_blocks(picks):
+    """Find dense spatial runs inside short arrival-time windows.
+
+    Spatial continuity suppresses isolated picks. The one-second window is an
+    initial candidate screen, not the physical moveout acceptance tolerance.
+    """
     candidates = []
     end_index = 0
     for start_index, anchor in enumerate(picks):
@@ -299,6 +314,12 @@ def detect_blocks(picks):
 
 
 def group_event_blocks(blocks):
+    """Group time-near blocks within one input file before moveout testing.
+
+    Compare the next start with the latest end, not median arrival times.
+    Chaining can span more than three seconds; spatial adjacency is not required.
+    This empirical grouping rule does not prove that blocks share a source.
+    """
     groups = []
     for block in sorted(blocks, key=lambda row: row["arrival_start"]):
         if not groups:
@@ -351,6 +372,12 @@ def linear_diagnostic(distances, observed):
 
 
 def classify_block(block, block_number, geometry):
+    """Check local smoothness while tolerating a small fraction of outliers.
+
+    A moving median follows the observed arrival trend without requiring a
+    known source. Scaled MAD is 1.4826 times median absolute centered residual;
+    the inlier fraction and contiguous-run check retain spatial support.
+    """
     rows = []
     for pick in block["block_picks"]:
         metadata = geometry.get(pick["channel"])
@@ -487,6 +514,11 @@ def evenly_spaced_subset(rows, maximum):
 
 
 def hypothesis_score(rows, source_x, source_y, depth_km, velocity_km_s):
+    """Rank straight-ray, constant-velocity hypotheses using clipped residuals.
+
+    Remove a common offset so relative timing, rather than the absolute DAS
+    clock, controls the score. This is not a layered velocity-model inversion.
+    """
     observed = [datetime_to_epoch(row["arrival_time_utc"]) for row in rows]
     predicted = []
     for row in rows:
@@ -515,6 +547,11 @@ def source_grid():
 
 
 def refine_grid(best):
+    """Explore a finer neighborhood of the best coarse-grid hypothesis.
+
+    Refinement may exceed the initial 0-20 km depths and 2.5-4 km/s velocities;
+    bounds here are 0-25 km and 2-4.5 km/s. This is still a local source search.
+    """
     best_x, best_y, best_depth, best_velocity = best
     for x_step in range(-5, 6):
         source_x = best_x + 0.5 * x_step
@@ -530,6 +567,11 @@ def refine_grid(best):
 
 
 def evaluate_best_source(all_rows, hypothesis):
+    """Measure residuals after subtracting the median common time offset.
+
+    Source coordinates and DAS origin estimates are fit diagnostics, not
+    independently validated locations or corrected earthquake origin times.
+    """
     source_x, source_y, depth, velocity = hypothesis
     raw_residuals = []
     travel_times = []
@@ -575,6 +617,11 @@ def evaluate_best_source(all_rows, hypothesis):
 
 
 def fit_physical_moveout(event_picks):
+    """Search on at most 80 spatially distributed picks, then evaluate all picks.
+
+    The coarse grid is refined locally to test plausible arrival patterns.
+    No known ComCat event is supplied to choose the source hypothesis.
+    """
     search_rows = evenly_spaced_subset(event_picks, MAX_GRID_PICKS)
     best_hypothesis = None
     best_score = float("inf")
@@ -624,6 +671,12 @@ def serialized(values, formatter=None):
 
 
 def analyze_file(path, geometry, source_hash):
+    """Turn one pick file into auditable blocks, candidates and classifications.
+
+    Test segments individually as well as together so a noisy cable segment
+    does not veto an otherwise coherent arrival. Classification is candidate
+    quality only; earthquake confirmation is a separate downstream decision.
+    """
     picks, input_rows = read_s_picks(path)
     blocks = detect_blocks(picks)
     block_rows_by_number = {}
@@ -930,6 +983,11 @@ def parse_arguments():
 
 
 def main():
+    """Process matching CSVs and save metrics plus the exact run configuration.
+
+    Review DAS_file_summary.csv for errors: an unreadable file is not evidence
+    that no earthquake occurred. Files are analyzed independently.
+    """
     args = parse_arguments()
     input_dir = args.input_dir.resolve()
     output_dir = (
