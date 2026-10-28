@@ -14,6 +14,9 @@
 
 From the repository root:
 
+For an annotated interactive entry point, open `DAS_pick_quality_workflow.ipynb`.
+It runs the same script and summarizes its classifications and file errors.
+
 ```bash
 python3 ML/das_event_catalog.py --input-dir /path/to/pick_csvs --output-dir /path/to/results
 ```
