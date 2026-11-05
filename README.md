@@ -26,6 +26,13 @@ banner.png          - Repository banner image
 README.md           - This file  
 ```
 
+## ML, template matching, DAS and seismic-station comparisons
+
+The [ML-TM-DAS-STATIONS notebooks](notebooks/ml-tm-das-stations/) reproduce the
+three-panel comparison figure and the full GaMMA catalog analysis. Local input
+setup, dependencies, matching settings and interpretation notes are included;
+the research CSVs remain local and are not distributed in this pull request.
+
 ## Citation
 
 If you use this repository or data, please cite:
